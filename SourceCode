@@ -1,0 +1,179 @@
+Enter file contents here
+Option Explicit
+Dim message As VbMsgBoxResult
+Dim wins As Integer
+Dim try As Integer
+Dim initialBudget As Double
+
+Private Declare Function FindWindow Lib "user32" Alias _
+      "FindWindowA" (ByVal lpClassName As String, ByVal _
+      lpWindowName As String) As Long
+
+Private Declare Function GetWindowLong Lib "user32" Alias _
+      "GetWindowLongA" (ByVal hWnd As Long, ByVal nIndex _
+      As Long) As Long
+
+Private Declare Function SetWindowLong Lib "user32" Alias _
+      "SetWindowLongA" (ByVal hWnd As Long, ByVal nIndex _
+      As Long, ByVal dwNewLong As Long) As Long
+
+Private Declare Function SendMessage Lib "user32" Alias _
+      "SendMessageA" (ByVal hWnd As Long, ByVal wMsg As Long, _
+      ByVal wParam As Integer, ByVal lParam As Long) As Long
+
+Private Declare Function DrawMenuBar Lib "user32" (ByVal _
+      hWnd As Long) As Long
+
+Private Const GWL_STYLE As Long = -16
+Private Const GWL_EXSTYLE As Long = (-20)
+Private Const WS_EX_DLGMODALFRAME As Long = &H1
+Private Const WM_SETICON = &H80
+
+Private hWndForm As Long
+Private bIcon As Boolean
+
+
+Private Sub UserForm_Initialize()
+  myPicture.Visible = False
+  initialBudget = 100000
+
+  If Val(Application.Version) >= 9 Then
+    hWndForm = FindWindow("ThunderDFrame", Me.Caption)
+  Else
+    hWndForm = FindWindow("ThunderXFrame", Me.Caption)
+  End If
+
+  bIcon = True
+  ChangeIcon
+  SetUserFormStyle
+End Sub
+
+Private Sub SetUserFormStyle()
+  Dim frmStyle As Long
+
+  If hWndForm = 0 Then Exit Sub
+
+  frmStyle = GetWindowLong(hWndForm, GWL_EXSTYLE)
+
+  If bIcon Then
+    frmStyle = frmStyle And Not WS_EX_DLGMODALFRAME
+  Else
+    frmStyle = frmStyle Or WS_EX_DLGMODALFRAME
+  End If
+
+  SetWindowLong hWndForm, GWL_EXSTYLE, frmStyle
+
+  DrawMenuBar hWndForm
+End Sub
+
+Private Sub ChangeIcon()
+  Dim hIcon As Long
+
+  On Error Resume Next
+  If hWndForm <> 0 Then
+    If bIcon Then
+      hIcon = myPicture.Picture
+    Else
+      hIcon = 0
+    End If
+    SendMessage hWndForm, WM_SETICON, True, hIcon
+    SendMessage hWndForm, WM_SETICON, False, hIcon
+  End If
+End Sub
+
+Private Sub optIconOn_Click()
+  bIcon = True
+  ChangeIcon
+  SetUserFormStyle
+End Sub
+
+Private Sub optIconOff_Click()
+  bIcon = False
+  ChangeIcon
+  SetUserFormStyle
+End Sub
+
+Private Sub endButton_Click()
+    message = MsgBox("Are you sure you want to end the application?", vbYesNo, "Security Alert")
+    If message <> vbYes Then
+    Else
+        End
+    End If
+End Sub
+
+Private Sub spinButton_Click()
+    Dim firstWin As Integer
+    Dim secondWin As Integer
+    Dim thirdWin As Integer
+    Dim msg
+    Dim randomWin As Integer
+    
+    'firstWin = Int(Rnd * 100)
+    'secondWin = Int(Rnd * 100)
+    'thirdWin = Int(Rnd * 100)
+    
+    randomWin = Int(Rnd * 100)
+    try = try + 1
+    tryLabel.Caption = "Tries: " & try
+    wins = wins
+    Label4.Caption = "7 WINS!"
+    'Randomize Timer
+    myPicture.Visible = False
+    Label1.Caption = Int(Rnd * 10)
+    Label2.Caption = Int(Rnd * 10)
+    Label3.Caption = Int(Rnd * 10)
+    
+    'If try = firstWin Or try = secondWin Or try = thirdWin Then
+    If try = randomWin Then
+        Label1.Caption = 7
+        Label2.Caption = 7
+        Label3.Caption = 7
+        ElseIf try = 100 Then
+            msg = MsgBox("Congrats! You won " & initialBudget & " dollars! Play AGAIN?", vbYesNo, "You won!")
+            If msg <> vbNo Then
+                wins = 0
+                winsLabel.Caption = "Wins " & wins
+                try = 0
+                tryLabel.Caption = "Tries: " & try
+                initialBudget = 100000
+                budgetLabel.Caption = "Your budget " & initialBudget
+            Else
+                End
+            End If
+    End If
+    
+    If (Label1.Caption = 7) And (Label2.Caption = 7) And (Label3.Caption = 7) Then
+        myPicture.Visible = True
+        Label4.Caption = "YOU WIN!"
+        wins = wins + 1
+        winsLabel.Caption = "Wins: " & wins
+        initialBudget = initialBudget + 2000
+        budgetLabel.Caption = "Your budget: " & initialBudget
+    Else
+        initialBudget = initialBudget - 500
+        budgetLabel.Caption = "Your budget: " & initialBudget
+    End If
+End Sub
+
+Private Sub resetButton_Click()
+    myPicture.Visible = False
+    wins = 0
+    winsLabel.Caption = "Wins: 0"
+    try = 0
+    tryLabel.Caption = "Tries: 0"
+    Label1.Caption = ""
+    Label2.Caption = ""
+    Label3.Caption = ""
+    budgetLabel.Caption = "Your budget: 100000"
+    initialBudget = 100000
+End Sub
+
+Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
+    If MsgBox("Are you sure you want to end the application?", vbYesNo, "Security Alert") <> vbYes Then
+        If CloseMode <> 1 Then
+            Cancel = 1
+        End If
+    Else
+        End
+    End If
+End Sub
